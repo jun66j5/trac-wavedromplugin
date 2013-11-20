@@ -6,6 +6,7 @@
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution.
 
+import re
 from genshi.builder import tag
 
 from trac.core import implements
@@ -55,6 +56,12 @@ Example:
 }}}
 """
 
+    _quote = dict(zip('&<>', map(lambda v: r'\x%02x' % ord(v), '&<>')))
+    _quote_re = re.compile('[&<>]')
+
     def expand_macro(self, formatter, name, content):
         if content and content.strip():
-            return tag.script(content, type='WaveDrom')
+            def repl(match):
+                return self._quote[match.group(0)]
+            return tag.script(self._quote_re.sub(repl, content),
+                              type='WaveDrom')
